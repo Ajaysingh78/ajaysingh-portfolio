@@ -19,7 +19,7 @@ export const personalInfo = {
   tagline:
     'MERN Stack and Java developer building scalable systems, hackathon-grade products, and real-world engineering solutions.',
   email: 'ajaygurjar78692@gmail.com',
-  phone: '+91 78692 00000',
+  phone: '',
   location: 'Bhopal, Madhya Pradesh, India',
   college: 'IES College of Technology, Bhopal',
   degree: 'B.Tech Computer Science',
@@ -27,7 +27,7 @@ export const personalInfo = {
   availability: 'Open to internships and collaborations',
   github: 'https://github.com/Ajaysingh78',
   linkedin: 'https://www.linkedin.com/in/ajay-rathore',
-  resumeUrl: '',
+  resumeUrl: '/resume.pdf',
   avatarUrl: '',
 } as const
 
@@ -203,7 +203,7 @@ export const projects: Project[] = [
     tags: ['Healthcare', 'Analytics', 'Backend'],
     highlight: true,
     accentColor: 'green',
-    githubUrl: personalInfo.github,
+    githubUrl: 'https://github.com/Ajaysingh78/mdr-trace',
   },
   {
     id: 'nasa-space-apps',
@@ -226,7 +226,7 @@ export const projects: Project[] = [
     tags: ['SpaceTech', 'Prototype', 'Data'],
     highlight: true,
     accentColor: 'purple',
-    githubUrl: personalInfo.github,
+    githubUrl: 'https://github.com/Ajaysingh78/nasa-space-apps',
   },
   {
     id: 'portfolio-os',
@@ -248,7 +248,7 @@ export const projects: Project[] = [
     tags: ['Portfolio', 'UI', 'Frontend'],
     highlight: false,
     accentColor: 'accent',
-    githubUrl: personalInfo.github,
+    githubUrl: 'https://github.com/Ajaysingh78/ajaysingh-portfolio',
   },
   {
     id: 'api-optimizer',
@@ -270,7 +270,7 @@ export const projects: Project[] = [
     tags: ['Backend', 'Performance', 'Java'],
     highlight: false,
     accentColor: 'amber',
-    githubUrl: personalInfo.github,
+    githubUrl: 'https://github.com/Ajaysingh78/api-optimizer',
   },
 ]
 
@@ -415,6 +415,7 @@ export const terminalCommands: TerminalCommand[] = [
       'hackathons - show competition record',
       'contact - show direct contact details',
       'open github - open GitHub profile',
+      'open linkedin - open LinkedIn profile',
       'download resume - show resume status',
       'clear - reset terminal',
     ],

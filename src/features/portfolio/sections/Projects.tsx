@@ -1,242 +1,113 @@
 'use client'
-
 // ============================================================
-// PROJECTS — OPERATIONS CENTER
+// PROJECTS SECTION v3
 // ============================================================
-
-import { useState, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { GitBranch, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
-import { accentColorMap } from '@/features/portfolio/config/display'
+import { useRef }            from 'react'
+import { GitBranch, ArrowUpRight } from 'lucide-react'
+import { sectionReveal, staggerContainer, staggerItem, viewportConfig } from '@/lib/animations/motion'
 import { projects } from '@/features/portfolio/data'
-import type { Project } from '@/features/portfolio/types'
-import { staggerContainer, staggerItem, viewportConfig } from '@/lib/animations/motion'
-import { openUrl } from '@/lib/browser'
+
+const blobs: Record<string, { a: string; b: string }> = {
+  accent: { a: 'rgba(196,166,255,0.28)', b: 'rgba(167,139,250,0.18)' },
+  green:  { a: 'rgba(110,231,183,0.28)', b: 'rgba(16,185,129,0.18)' },
+  purple: { a: 'rgba(167,139,250,0.30)', b: 'rgba(139,92,246,0.18)' },
+  amber:  { a: 'rgba(252,211,77,0.26)',  b: 'rgba(245,158,11,0.16)' },
+}
+const statusBadge: Record<string, string> = {
+  finalist: 'badge-purple', deployed: 'badge-green', shortlisted: 'badge-accent', built: 'badge-amber',
+}
 
 export function Projects() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, viewportConfig)
+  const ref    = useRef(null)
+  const inView = useInView(ref, viewportConfig)
+  const featured = projects.filter(p => p.highlight)
+  const rest     = projects.filter(p => !p.highlight)
 
   return (
     <section id="projects" className="section" ref={ref}>
-      <div className="container">
+      <motion.div variants={sectionReveal} initial="hidden" animate={inView ? 'visible' : 'hidden'}>
+        <span className="section-label">Projects</span>
+      </motion.div>
+      <motion.h2 variants={staggerItem} initial="hidden" animate={inView ? 'visible' : 'hidden'} style={{ marginBottom: 40, maxWidth: '20ch' }}>
+        Things I&apos;ve <span className="gradient-text">built & shipped</span>
+      </motion.h2>
 
-        {/* Section label */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="section-label">03 · Projects</span>
-        </motion.div>
+      <motion.div variants={staggerContainer} initial="hidden" animate={inView ? 'visible' : 'hidden'} className="grid md:grid-cols-2 gap-6 mb-6">
+        {featured.map(p => {
+          const blob = blobs[p.accentColor] ?? blobs.accent
+          return (
+            <motion.article key={p.id} variants={staggerItem} className="glass-card overflow-hidden flex flex-col"
+              whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+              {/* Blob visual */}
+              <div className="blob-3d" style={{ '--blob-a': blob.a, '--blob-b': blob.b, minHeight: 155 } as React.CSSProperties}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div style={{ width: 80, height: 80, background: `radial-gradient(circle,${blob.a} 0%,transparent 70%)`, borderRadius: '40% 60% 70% 30%/40% 50% 60% 50%', filter: 'blur(1px)', animation: 'blob-morph 8s ease-in-out infinite' }} />
+                </div>
+                <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+                  {p.stack.slice(0, 3).map(s => <span key={s} className="badge badge-muted" style={{ fontSize: '0.58rem', padding: '3px 7px' }}>{s}</span>)}
+                </div>
+                <div className="absolute top-3 right-3">
+                  <span className={`badge ${statusBadge[p.status] ?? 'badge-muted'}`}>{p.statusLabel}</span>
+                </div>
+              </div>
+              {/* Content */}
+              <div className="p-5 flex flex-col gap-3 flex-1">
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4, lineHeight: 1.3 }}>{p.title}</h3>
+                  <p style={{ fontSize: '0.80rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>{p.tagline}</p>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{p.description}</p>
+                <div className="flex flex-wrap gap-2 mt-auto pt-2">
+                  {p.metrics.map(m => (
+                    <div key={m.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: '0.88rem', color: 'var(--accent)' }}>{m.value}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.60rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{m.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-4 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  {p.githubUrl && (
+                    <a href={p.githubUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 transition-colors"
+                      style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.70rem' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+                      <GitBranch size={13} /> Code
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.article>
+          )
+        })}
+      </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-12"
-        >
-          <h2 className="font-head mb-3">
-            Project{' '}
-            <span style={{ color: 'var(--accent)' }}>Operations Center</span>
-          </h2>
-          <p className="text-base max-w-xl" style={{ color: 'var(--text-secondary)' }}>
-            Not side projects — deployed systems, hackathon missions, and real-world solutions.
-          </p>
-        </motion.div>
-
-        {/* Projects grid */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid lg:grid-cols-2 gap-6"
-        >
-          {projects.map((project, i) => (
-            <motion.div key={project.id} variants={staggerItem}>
-              <ProjectCard project={project} index={i} />
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const [expanded, setExpanded] = useState(false)
-  const colors = accentColorMap[project.accentColor]
-
-  const statusColorMap: Record<string, string> = {
-    deployed:    'var(--green)',
-    finalist:    'var(--purple)',
-    shortlisted: 'var(--accent)',
-    built:       'var(--amber)',
-  }
-
-  return (
-    <motion.div
-      className="glass-card p-6 flex flex-col gap-5 h-full cursor-hover"
-      whileHover={{ y: -4, borderColor: 'var(--border-accent)' }}
-      transition={{ duration: 0.25 }}
-      style={{
-        borderLeft: `2px solid ${colors.hex}`,
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-2">
-          {/* Status badge */}
-          <span
-            className="badge text-xs"
-            style={{
-              color: statusColorMap[project.status],
-              background: `${statusColorMap[project.status]}15`,
-              borderColor: `${statusColorMap[project.status]}40`,
-            }}
-          >
-            ● {project.statusLabel}
-          </span>
-
-          {/* Title */}
-          <h3
-            className="font-head text-lg leading-tight"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {project.title}
-          </h3>
-
-          {/* Tagline */}
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {project.tagline}
-          </p>
-        </div>
-
-        {/* Index */}
-        <span
-          className="text-3xl font-head opacity-10 flex-shrink-0"
-          style={{ color: colors.hex }}
-        >
-          0{index + 1}
-        </span>
-      </div>
-
-      {/* Description */}
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-        {project.description}
-      </p>
-
-      {/* Metrics */}
-      <div className="grid grid-cols-2 gap-2">
-        {project.metrics.map((metric) => (
-          <div
-            key={metric.label}
-            className="flex flex-col gap-0.5 px-3 py-2 rounded-lg"
-            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
-          >
-            <span
-              className="text-xs font-medium"
-              style={{ color: colors.hex }}
-            >
-              {metric.value}
-            </span>
-            <span
-              className="text-xs"
-              style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-            >
-              {metric.label}
-            </span>
-          </div>
+      <motion.div variants={staggerContainer} initial="hidden" animate={inView ? 'visible' : 'hidden'} className="grid sm:grid-cols-2 gap-4">
+        {rest.map(p => (
+          <motion.article key={p.id} variants={staggerItem} className="glass-card p-5 flex flex-col gap-3"
+            whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{p.title}</h4>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>{p.tagline}</p>
+              </div>
+              {p.githubUrl && (
+                <a href={p.githubUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                  style={{ border: '1px solid var(--border-default)', color: 'var(--text-muted)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-accent)'; e.currentTarget.style.color = 'var(--accent)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.color = 'var(--text-muted)' }}>
+                  <ArrowUpRight size={14} />
+                </a>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {p.stack.slice(0, 4).map(s => <span key={s} className="badge badge-muted" style={{ fontSize: '0.58rem' }}>{s}</span>)}
+            </div>
+          </motion.article>
         ))}
-      </div>
-
-      {/* Expandable: Problem + Solution */}
-      {expanded && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="flex flex-col gap-4 pt-2"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}
-        >
-          <div>
-            <p
-              className="text-xs mb-1 tracking-widest uppercase"
-              style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-            >
-              Problem
-            </p>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              {project.problem}
-            </p>
-          </div>
-          <div>
-            <p
-              className="text-xs mb-1 tracking-widest uppercase"
-              style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-            >
-              Solution
-            </p>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              {project.solution}
-            </p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-auto pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-        {/* Tech stack */}
-        <div className="flex flex-wrap gap-1.5">
-          {project.stack.slice(0, 3).map((tech) => (
-            <span key={tech} className="badge badge-muted text-[10px] py-0.5">
-              {tech}
-            </span>
-          ))}
-          {project.stack.length > 3 && (
-            <span className="badge badge-muted text-[10px] py-0.5">
-              +{project.stack.length - 3}
-            </span>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {project.githubUrl && (
-            <button
-              onClick={() => openUrl(project.githubUrl!)}
-              className="p-1.5 rounded-lg transition-colors hover:text-[var(--accent)]"
-              style={{ color: 'var(--text-muted)' }}
-              aria-label="View on GitHub"
-            >
-              <GitBranch size={15} />
-            </button>
-          )}
-          {project.liveUrl && (
-            <button
-              onClick={() => openUrl(project.liveUrl!)}
-              className="p-1.5 rounded-lg transition-colors hover:text-[var(--accent)]"
-              style={{ color: 'var(--text-muted)' }}
-              aria-label="View live"
-            >
-              <ExternalLink size={15} />
-            </button>
-          )}
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-all"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--text-muted)',
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
-            {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            {expanded ? 'Less' : 'More'}
-          </button>
-        </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </section>
   )
 }

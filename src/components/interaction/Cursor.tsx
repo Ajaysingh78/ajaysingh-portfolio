@@ -1,90 +1,42 @@
 'use client'
-
 // ============================================================
-// CURSOR — CUSTOM CURSOR SYSTEM
+// CURSOR v3
 // ============================================================
-
 import { useEffect, useRef, useState } from 'react'
 
 export function Cursor() {
   const dotRef  = useRef<HTMLDivElement>(null)
   const ringRef = useRef<HTMLDivElement>(null)
-  const [isHovering, setIsHovering] = useState(false)
+  const [hovering, setHovering] = useState(false)
 
   useEffect(() => {
-    // Hide on touch devices
-    if (window.matchMedia('(pointer: coarse)').matches) return
+    if ('ontouchstart' in window) return
+    let raf: number, ringX = 0, ringY = 0, curX = 0, curY = 0
 
-    const dot  = dotRef.current
-    const ring = ringRef.current
-    if (!dot || !ring) return
-
-    let mouseX = 0, mouseY = 0
-    let ringX  = 0, ringY  = 0
-    let rafId: number
-
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
-      dot.style.left = `${mouseX}px`
-      dot.style.top  = `${mouseY}px`
+    const onMove = (e: MouseEvent) => {
+      curX = e.clientX; curY = e.clientY
+      if (dotRef.current) { dotRef.current.style.left = `${curX}px`; dotRef.current.style.top = `${curY}px` }
     }
-
-    const animateRing = () => {
-      ringX += (mouseX - ringX) * 0.12
-      ringY += (mouseY - ringY) * 0.12
-      ring.style.left = `${ringX}px`
-      ring.style.top  = `${ringY}px`
-      rafId = requestAnimationFrame(animateRing)
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+    const animate = () => {
+      ringX = lerp(ringX, curX, 0.12); ringY = lerp(ringY, curY, 0.12)
+      if (ringRef.current) { ringRef.current.style.left = `${ringX}px`; ringRef.current.style.top = `${ringY}px` }
+      raf = requestAnimationFrame(animate)
     }
+    const onEnter = (e: MouseEvent) => { if ((e.target as HTMLElement).closest('a,button,[role="button"],input,textarea')) setHovering(true) }
+    const onLeave = () => setHovering(false)
 
-    const onMouseEnterLink = () => setIsHovering(true)
-    const onMouseLeaveLink = () => setIsHovering(false)
-    const trackedInteractables = new Set<Element>()
-
-    const addHoverListeners = () => {
-      const interactables = document.querySelectorAll(
-        'a, button, [role="button"], .cursor-hover'
-      )
-      interactables.forEach((el) => {
-        if (trackedInteractables.has(el)) return
-        trackedInteractables.add(el)
-        el.addEventListener('mouseenter', onMouseEnterLink)
-        el.addEventListener('mouseleave', onMouseLeaveLink)
-      })
-    }
-
-    document.addEventListener('mousemove', onMouseMove)
-    rafId = requestAnimationFrame(animateRing)
-    addHoverListeners()
-
-    // Re-check after dynamic content loads
-    const observer = new MutationObserver(addHoverListeners)
-    observer.observe(document.body, { childList: true, subtree: true })
-
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove)
-      cancelAnimationFrame(rafId)
-      observer.disconnect()
-      trackedInteractables.forEach((el) => {
-        el.removeEventListener('mouseenter', onMouseEnterLink)
-        el.removeEventListener('mouseleave', onMouseLeaveLink)
-      })
-    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+    window.addEventListener('mouseover', onEnter, { passive: true })
+    window.addEventListener('mouseout',  onLeave, { passive: true })
+    raf = requestAnimationFrame(animate)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseover', onEnter); window.removeEventListener('mouseout', onLeave); cancelAnimationFrame(raf) }
   }, [])
 
   return (
     <>
-      <div
-        ref={dotRef}
-        className="cursor-dot"
-        aria-hidden="true"
-      />
-      <div
-        ref={ringRef}
-        className={`cursor-ring ${isHovering ? 'hovering' : ''}`}
-        aria-hidden="true"
-      />
+      <div ref={dotRef}  className="cursor-dot"  aria-hidden="true" />
+      <div ref={ringRef} className={`cursor-ring ${hovering ? 'hovering' : ''}`} aria-hidden="true" />
     </>
   )
 }

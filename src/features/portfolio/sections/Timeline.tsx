@@ -1,151 +1,60 @@
 'use client'
-
 // ============================================================
-// TIMELINE SECTION
+// TIMELINE
 // ============================================================
-
-import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { timelineCategoryColor } from '@/features/portfolio/config/display'
+import { useRef }            from 'react'
+import { BookOpen, Briefcase, Trophy, FolderGit2 } from 'lucide-react'
+import { sectionReveal, viewportConfig } from '@/lib/animations/motion'
 import { timelineItems } from '@/features/portfolio/data'
-import { staggerContainer, staggerItem, viewportConfig } from '@/lib/animations/motion'
 
-const categoryLabel = {
-  education:   'Education',
-  experience:  'Experience',
-  achievement: 'Achievement',
-  project:     'Project',
-}
+const catIcon: Record<string, React.ElementType> = { education: BookOpen, experience: Briefcase, achievement: Trophy, project: FolderGit2 }
+const catColor: Record<string, string> = { education: 'var(--accent)', experience: 'var(--green)', achievement: 'var(--purple)', project: 'var(--amber)' }
 
 export function Timeline() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, viewportConfig)
-
+  const ref = useRef(null); const inView = useInView(ref, viewportConfig)
   return (
     <section id="timeline" className="section" ref={ref}>
-      <div className="container">
-
-        {/* Section label */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="section-label">06 · Timeline</span>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-12"
-        >
-          <h2 className="font-head mb-3">
-            Engineering{' '}
-            <span style={{ color: 'var(--accent)' }}>Growth Log</span>
-          </h2>
-          <p className="text-base max-w-xl" style={{ color: 'var(--text-secondary)' }}>
-            Every milestone, every win, every step of the journey — documented.
-          </p>
-        </motion.div>
-
-        {/* Timeline */}
-        <div className="relative max-w-3xl mx-auto">
-
-          {/* Vertical line */}
-          <motion.div
-            className="absolute left-[19px] top-0 bottom-0 w-px"
-            initial={{ scaleY: 0, originY: 0 }}
-            animate={isInView ? { scaleY: 1 } : {}}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-            style={{
-              background: 'linear-gradient(180deg, transparent, var(--accent-strong), transparent)',
-            }}
-          />
-
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate={isInView ? 'visible' : 'hidden'}
-            className="flex flex-col gap-8"
-          >
-            {timelineItems.map((item) => {
-              const colorKey = timelineCategoryColor[item.category]
-              const colorVar =
-                colorKey === 'accent'  ? 'var(--accent)'  :
-                colorKey === 'green'   ? 'var(--green)'   :
-                colorKey === 'purple'  ? 'var(--purple)'  :
-                'var(--amber)'
-
-              return (
-                <motion.div
-                  key={item.id}
-                  variants={staggerItem}
-                  className="flex gap-6 pl-1"
-                >
-                  {/* Dot */}
-                  <div className="flex flex-col items-center flex-shrink-0 mt-1">
-                    <div
-                      className="timeline-dot"
-                      style={{
-                        background: item.highlight ? colorVar : 'var(--border-strong)',
-                        boxShadow: item.highlight ? `0 0 8px ${colorVar}` : 'none',
-                        width: item.highlight ? '12px' : '8px',
-                        height: item.highlight ? '12px' : '8px',
-                      }}
-                    />
-                  </div>
-
-                  {/* Content */}
-                  <div
-                    className={`flex flex-col gap-1.5 pb-2 ${item.highlight ? 'glass-card p-4 -mt-2' : ''}`}
-                    style={item.highlight ? { borderLeft: `2px solid ${colorVar}` } : {}}
-                  >
-                    {/* Year + category */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span
-                        className="text-xs font-medium"
-                        style={{ fontFamily: 'var(--font-mono)', color: colorVar }}
-                      >
-                        {item.year}
-                      </span>
-                      <span
-                        className="badge text-[10px] py-0.5"
-                        style={{
-                          color: colorVar,
-                          background: `${colorVar}12`,
-                          borderColor: `${colorVar}30`,
-                        }}
-                      >
-                        {categoryLabel[item.category]}
-                      </span>
+      <motion.div variants={sectionReveal} initial="hidden" animate={inView ? 'visible' : 'hidden'}>
+        <span className="section-label">Timeline</span>
+      </motion.div>
+      <motion.h2 variants={sectionReveal} initial="hidden" animate={inView ? 'visible' : 'hidden'} style={{ marginBottom: 48 }}>
+        The journey <span className="gradient-text">so far</span>
+      </motion.h2>
+      <div className="relative pl-8">
+        <motion.div className="timeline-line" style={{ left: 3 }}
+          initial={{ scaleY: 0, originY: 0 }}
+          animate={inView ? { scaleY: 1 } : { scaleY: 0 }}
+          transition={{ duration: 1.2, ease: [0.22,1,0.36,1], delay: 0.2 }} />
+        <div className="flex flex-col gap-8">
+          {timelineItems.map((item, i) => {
+            const Icon   = catIcon[item.category]   ?? BookOpen
+            const accent = catColor[item.category] ?? 'var(--accent)'
+            return (
+              <motion.div key={item.id}
+                initial={{ opacity: 0, x: -24 }}
+                animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -24 }}
+                transition={{ delay: 0.3 + i * 0.12, duration: 0.55, ease: [0.22,1,0.36,1] }}
+                className="relative">
+                <div className="absolute -left-8 top-3 timeline-dot" style={{ background: accent, boxShadow: `0 0 10px ${accent}80` }} />
+                <div className={`glass-card p-5 ${item.highlight ? '' : 'opacity-80'}`} style={item.highlight ? { borderColor: `${accent}30` } : {}}>
+                  <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${accent}14`, border: `1px solid ${accent}33` }}>
+                      <Icon size={15} style={{ color: accent }} />
                     </div>
-
-                    {/* Title */}
-                    <h4
-                      className="font-head text-base"
-                      style={{ color: item.highlight ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                    >
-                      {item.title}
-                    </h4>
-
-                    {/* Subtitle */}
-                    <span
-                      className="text-xs"
-                      style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-                    >
-                      {item.subtitle}
-                    </span>
-
-                    {/* Description */}
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                      {item.description}
-                    </p>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2 flex-wrap mb-1">
+                        <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{item.title}</h3>
+                        <span className="badge flex-shrink-0" style={{ color: accent, background: `${accent}12`, borderColor: `${accent}30` }}>{item.year}</span>
+                      </div>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: accent, marginBottom: 6, letterSpacing: '0.04em' }}>{item.subtitle}</p>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{item.description}</p>
+                    </div>
                   </div>
-                </motion.div>
-              )
-            })}
-          </motion.div>
+                </div>
+              </motion.div>
+            )
+          })}
         </div>
       </div>
     </section>

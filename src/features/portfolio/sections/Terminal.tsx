@@ -57,14 +57,20 @@ export function Terminal() {
     setHistory((h) => [cmd, ...h])
     setHistIdx(-1)
 
-    const commandDef = terminalCommands.find((c) => c.command === raw)
+    // Normalize command input
+    let normalizedCmd = raw
+    if (raw === 'resume') normalizedCmd = 'download resume'
+    if (raw === 'github') normalizedCmd = 'open github'
+    if (raw === 'linkedin' || raw === 'open linkedin') normalizedCmd = 'open linkedin'
+
+    const commandDef = terminalCommands.find((c) => c.command === normalizedCmd)
 
     if (raw === 'clear') {
       setEntries(WELCOME)
       return
     }
 
-    if (raw === 'open github') {
+    if (normalizedCmd === 'open github') {
       openUrl('https://github.com/Ajaysingh78')
       setEntries((e) => [
         ...e,
@@ -74,12 +80,23 @@ export function Terminal() {
       return
     }
 
-    if (raw === 'download resume') {
+    if (normalizedCmd === 'open linkedin') {
+      openUrl('https://www.linkedin.com/in/ajay-rathore')
       setEntries((e) => [
         ...e,
         newEntry,
-        { type: 'success', content: ['→ Resume link will be available soon.', '→ Contact at ajaygurjar78692@gmail.com'] },
+        { type: 'success', content: ['→ Opening LinkedIn profile...', '→ linkedin.com/in/ajay-rathore'] },
       ])
+      return
+    }
+
+    if (normalizedCmd === 'download resume') {
+      setEntries((e) => [
+        ...e,
+        newEntry,
+        { type: 'success', content: ['→ Opening resume document...', '→ resume.pdf'] },
+      ])
+      openUrl('/resume.pdf')
       return
     }
 
@@ -165,8 +182,9 @@ export function Terminal() {
               key={cmd.command}
               variants={staggerItem}
               onClick={() => {
-                setInput(cmd.command)
-                inputRef.current?.focus()
+                processCommand(cmd.command)
+                setInput('')
+                setTimeout(() => inputRef.current?.focus(), 50)
               }}
               className="badge badge-muted cursor-hover hover:border-[var(--border-accent)] hover:text-[var(--accent)] transition-all"
             >

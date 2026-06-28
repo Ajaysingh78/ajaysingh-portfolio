@@ -1,146 +1,56 @@
 'use client'
-
 // ============================================================
-// LOADER — CINEMATIC SYSTEM INITIALIZATION
+// LOADER v3
 // ============================================================
-
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { loaderSteps } from '@/features/portfolio/data'
+import { useEffect, useState }    from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { loaderWrapper, loaderText } from '@/lib/animations/motion'
-import { delay } from '@/lib/async'
+import { loaderSteps }               from '@/features/portfolio/data'
 
-interface LoaderProps {
-  onComplete: () => void
-}
-
-export function Loader({ onComplete }: LoaderProps) {
-  const [progress, setProgress]     = useState(0)
-  const [stepIndex, setStepIndex]   = useState(0)
-  const [currentText, setCurrentText] = useState(loaderSteps[0].text)
+export function Loader({ onComplete }: { onComplete: () => void }) {
+  const [progress,  setProgress]  = useState(0)
+  const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
-    let cancelled = false
+    const total = loaderSteps.reduce((s, l) => s + l.duration, 0)
+    let elapsed = 0, step = 0
 
-    const run = async () => {
-      const totalDuration = loaderSteps.reduce((acc, s) => acc + s.duration, 0)
-      let elapsed = 0
-
-      for (let i = 0; i < loaderSteps.length; i++) {
-        if (cancelled) return
-        const step = loaderSteps[i]
-
-        setStepIndex(i)
-        setCurrentText(step.text)
-
-        await delay(step.duration)
-        elapsed += step.duration
-        setProgress(Math.round((elapsed / totalDuration) * 100))
+    const tick = () => {
+      if (step >= loaderSteps.length) {
+        setProgress(100)
+        setTimeout(onComplete, 600)
+        return
       }
-
-      if (!cancelled) {
-        await delay(300)
-        onComplete()
-      }
+      setStepIndex(step)
+      const interval = setInterval(() => {
+        elapsed += 16
+        const p = Math.min((elapsed / total) * 100, ((step + 1) / loaderSteps.length) * 100)
+        setProgress(p)
+        if (elapsed >= (step + 1) * loaderSteps[step].duration) {
+          clearInterval(interval); step++; tick()
+        }
+      }, 16)
     }
-
-    run()
-    return () => { cancelled = true }
+    tick()
   }, [onComplete])
 
   return (
-    <motion.div
-      className="loader-wrapper"
-      variants={loaderWrapper}
-      initial="visible"
-      exit="exit"
-    >
-      {/* Grid background */}
-      <div className="grid-bg" aria-hidden="true" />
-
-      {/* Logo / Identity */}
-      <div className="flex flex-col items-center gap-8">
-        {/* Monogram */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
-        >
-          <div
-            className="w-16 h-16 border border-[var(--border-accent)] rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--accent-dim)' }}
-          >
-            <span
-              className="font-mono text-xl font-medium"
-              style={{ color: 'var(--accent)' }}
-            >
-              AR
-            </span>
-          </div>
-          {/* Glow ring */}
-          <motion.div
-            className="absolute inset-0 rounded-xl"
-            animate={{
-              boxShadow: [
-                '0 0 0px rgba(0,212,255,0)',
-                '0 0 24px rgba(0,212,255,0.3)',
-                '0 0 0px rgba(0,212,255,0)',
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </motion.div>
-
-        {/* Step text */}
-        <AnimatedText text={currentText} stepIndex={stepIndex} />
-
-        {/* Progress bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <div className="loader-bar-track">
-            <motion.div
-              className="loader-bar-fill"
-              initial={{ width: '0%' }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-            />
-          </div>
-          <span className="loader-text">{progress}%</span>
-        </motion.div>
-
-        {/* Bottom label */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="loader-text"
-          style={{ color: 'var(--text-disabled)' }}
-        >
-          AJAY RATHORE · BACKEND ENGINEER · CSE&apos;27
+    <motion.div className="loader-wrapper" variants={loaderWrapper} initial="visible" exit="exit">
+      <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-accent)', boxShadow: '0 0 24px var(--accent-glow)', fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--accent)' }}>
+        AR
+      </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.p key={stepIndex} className="loader-text" variants={loaderText} initial="hidden" animate="visible" exit="exit">
+          {loaderSteps[stepIndex]?.text ?? 'Ready'}
         </motion.p>
+      </AnimatePresence>
+      <div className="loader-bar-track mt-3">
+        <div className="loader-bar-fill" style={{ width: `${progress}%`, transition: 'width 0.08s linear' }} />
       </div>
-    </motion.div>
-  )
-}
-
-// Animated step text
-function AnimatedText({ text, stepIndex }: { text: string; stepIndex: number }) {
-  return (
-    <motion.div
-      key={stepIndex}
-      variants={loaderText}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="loader-text text-center"
-      style={{ color: 'var(--accent)', letterSpacing: '0.2em' }}
-    >
-      {text}
+      <span className="loader-text mt-1" style={{ color: 'var(--accent)' }}>{Math.round(progress)}%</span>
     </motion.div>
   )
 }

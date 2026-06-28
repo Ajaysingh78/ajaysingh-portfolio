@@ -1,192 +1,82 @@
 'use client'
-
 // ============================================================
-// HACKATHONS SECTION
+// HACKATHONS SECTION v3
 // ============================================================
-
-import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useRef }            from 'react'
 import { Trophy, Globe, Building2, GraduationCap } from 'lucide-react'
+import { sectionReveal, staggerContainer, staggerItem, viewportConfig } from '@/lib/animations/motion'
 import { hackathons } from '@/features/portfolio/data'
-import type { Hackathon } from '@/features/portfolio/types'
-import { staggerContainer, staggerItem, viewportConfig } from '@/lib/animations/motion'
 
-const levelIcon = {
-  international: <Globe size={14} />,
-  national:      <Building2 size={14} />,
-  college:       <GraduationCap size={14} />,
-}
-
-const levelLabel = {
-  international: 'International',
-  national:      'National',
-  college:       'College',
-}
-
-const resultColor: Record<string, string> = {
-  finalist:    'var(--purple)',
-  shortlisted: 'var(--accent)',
-  winner:      'var(--green)',
-  participant: 'var(--amber)',
-}
+const levelIcon: Record<string, React.ElementType> = { international: Globe, national: Building2, college: GraduationCap }
+const resultBadge: Record<string, string> = { finalist: 'badge-purple', winner: 'badge-green', shortlisted: 'badge-accent', participant: 'badge-amber' }
+const resultAccent: Record<string, string> = { finalist: 'var(--purple)', winner: 'var(--green)', shortlisted: 'var(--accent)', participant: 'var(--amber)' }
 
 export function Hackathons() {
   const ref = useRef(null)
-  const isInView = useInView(ref, viewportConfig)
-
+  const inView = useInView(ref, viewportConfig)
   return (
     <section id="hackathons" className="section" ref={ref}>
-      <div className="container">
-
-        {/* Section label */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="section-label">04 · Hackathons</span>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-12"
-        >
-          <h2 className="font-head mb-3">
-            Competed.{' '}
-            <span style={{ color: 'var(--accent)' }}>Delivered. Repeated.</span>
-          </h2>
-          <p className="text-base max-w-xl" style={{ color: 'var(--text-secondary)' }}>
-            10+ hackathons. NASA Finalist. SIH Top 6 Nationally. These aren&apos;t participation
-            certificates — they&apos;re proof of execution under pressure.
-          </p>
-        </motion.div>
-
-        {/* Summary stat bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12"
-        >
-          {[
-            { value: '10+',  label: 'Hackathons',       color: 'var(--accent)'  },
-            { value: '2',    label: 'Finalist Stages',  color: 'var(--purple)'  },
-            { value: 'Top 6',label: 'National Rank',    color: 'var(--green)'   },
-            { value: '1',    label: 'NASA Achievement', color: 'var(--amber)'   },
-          ].map((s) => (
-            <div key={s.label} className="stat-card">
-              <span className="stat-value" style={{ color: s.color }}>{s.value}</span>
-              <span className="stat-label">{s.label}</span>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Hackathon cards */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid md:grid-cols-3 gap-6"
-        >
-          {hackathons.map((h) => (
-            <motion.div key={h.id} variants={staggerItem}>
-              <HackathonCard hackathon={h} />
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Bottom note */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.6 }}
-          className="text-center text-sm mt-10"
-          style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-        >
-          + GDG Hackathons · Vertex Ideathon · Multiple National-Level Events
+      <motion.div variants={sectionReveal} initial="hidden" animate={inView ? 'visible' : 'hidden'}>
+        <span className="section-label">Hackathons</span>
+      </motion.div>
+      <motion.div variants={staggerContainer} initial="hidden" animate={inView ? 'visible' : 'hidden'} className="mb-10">
+        <motion.h2 variants={staggerItem} style={{ marginBottom: 12 }}>
+          Competing at the <span className="gradient-text">highest levels</span>
+        </motion.h2>
+        <motion.p variants={staggerItem} style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.75, maxWidth: '50ch' }}>
+          10+ hackathons across college, national, and international stages.
         </motion.p>
-      </div>
+      </motion.div>
+      <motion.div variants={staggerContainer} initial="hidden" animate={inView ? 'visible' : 'hidden'} className="flex flex-col gap-4">
+        {hackathons.map(hack => {
+          const LevelIcon = levelIcon[hack.level] ?? Globe
+          const accent    = resultAccent[hack.result] ?? 'var(--accent)'
+          return (
+            <motion.div key={hack.id} variants={staggerItem} className="glass-card p-6"
+              whileHover={{ x: 4 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{ borderLeft: `2px solid ${accent}` }}>
+              <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${accent}14`, border: `1px solid ${accent}33` }}>
+                  <Trophy size={17} style={{ color: accent }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 flex-wrap mb-2">
+                    <div>
+                      <h3 style={{ fontSize: '0.97rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{hack.name}</h3>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 3 }}>{hack.project} · {hack.year}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`badge ${resultBadge[hack.result] ?? 'badge-muted'}`}>{hack.resultLabel}</span>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-md" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+                        <LevelIcon size={11} style={{ color: 'var(--text-muted)' }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{hack.level}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{hack.description}</p>
+                </div>
+              </div>
+            </motion.div>
+          )
+        })}
+      </motion.div>
+      <motion.div variants={staggerItem} initial="hidden" animate={inView ? 'visible' : 'hidden'}
+        className="mt-8 rounded-xl p-5 flex flex-wrap items-center gap-6"
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)' }}>
+        {[
+          { val: '10+', label: 'Hackathons', color: 'var(--accent)' },
+          { val: '2',   label: 'Finalist titles', color: 'var(--purple)' },
+          { val: 'Top 6', label: 'SIH National', color: 'var(--green)' },
+          { val: 'Global', label: 'NASA stage', color: 'var(--amber)' },
+        ].map(s => (
+          <div key={s.label} className="flex items-baseline gap-2">
+            <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: '1.3rem', color: s.color, lineHeight: 1 }}>{s.val}</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
+          </div>
+        ))}
+      </motion.div>
     </section>
-  )
-}
-
-function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
-  const color = resultColor[hackathon.result]
-
-  return (
-    <motion.div
-      className="glass-card p-6 flex flex-col gap-4 h-full cursor-hover"
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.25 }}
-    >
-      {/* Level badge */}
-      <div className="flex items-center justify-between">
-        <span
-          className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            color: 'var(--text-muted)',
-            background: 'var(--bg-elevated)',
-            borderColor: 'var(--border-subtle)',
-          }}
-        >
-          {levelIcon[hackathon.level]}
-          {levelLabel[hackathon.level]}
-        </span>
-        <span
-          className="text-xs font-medium"
-          style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-        >
-          {hackathon.year}
-        </span>
-      </div>
-
-      {/* Trophy + result */}
-      <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `${color}15`, border: `1px solid ${color}30` }}
-        >
-          <Trophy size={18} style={{ color }} />
-        </div>
-        <div>
-          <h3
-            className="font-head text-base leading-tight mb-1"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {hackathon.name}
-          </h3>
-          <span
-            className="text-xs font-medium"
-            style={{ color, fontFamily: 'var(--font-mono)' }}
-          >
-            {hackathon.resultLabel}
-          </span>
-        </div>
-      </div>
-
-      {/* Description */}
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-        {hackathon.description}
-      </p>
-
-      {/* Project tag */}
-      {hackathon.project && (
-        <div
-          className="mt-auto pt-4"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}
-        >
-          <span
-            className="text-xs"
-            style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-          >
-            Project →{' '}
-            <span style={{ color: 'var(--text-secondary)' }}>{hackathon.project}</span>
-          </span>
-        </div>
-      )}
-    </motion.div>
   )
 }
